@@ -1,0 +1,17 @@
+
+.app__header{
+    background: #fff;
+    object-fit: contain;
+    /* padding: 10px; */
+    border-bottom: 1px solid lightgray;
+}
+
+.app__header .app__headerImage{
+    width: 200px;
+}
+
+
+.app__singup{
+    display: flex;
+    flex-direction: column;
+}
