@@ -8,7 +8,7 @@ import Modal from "@mui/material/Modal";
 import { Input, makeStyles } from "@material-ui/core";
 import { Button } from "@mui/material";
 import logo from "../assets/images/logo.jpg";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword,signInWithEmailAndPassword,updateProfile } from "firebase/auth";
 const getModalStyle = () => {
   const top = 50;
   const left = 50;
@@ -38,18 +38,39 @@ const Insta = () => {
   const [modalStyle] = useState(getModalStyle);
   const [post, setPost] = useState([]);
   const [open, setOpen] = useState(false);
+  const [openSignIn,setOpenSignIn] = useState(false);
+
 
   // For Input Hooks
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const [user, setUser] = useState(null);
   // For signup
-  const singUp = (event) => {
+  const singUp = async (event) => {
     event.preventDefault();
-    createUserWithEmailAndPassword(email, password)
-    .catch((error) => alert(error.message))
+
+    await createUserWithEmailAndPassword(auth, email, password)
+      .then( async ( authUser) => {
+        return await updateProfile(authUser.user.displayName,{
+          displayName: username,
+        });
+      })
+      .catch((error) => alert(error));
+
+      setOpen(false)
   };
+
+  // For signIn 
+  const singIn = async(event) =>{
+        event.preventDefault();
+        await signInWithEmailAndPassword(auth,email,password)
+        .catch((error) => alert(error.message))
+        setOpenSignIn(false);
+  };
+
+
+
   const getPost = async (db) => {
     const collectionName = collection(db, "post");
     const postSnapshot = await getDocs(collectionName);
@@ -58,6 +79,24 @@ const Insta = () => {
     // collectionName.firestore()
     // console.log(postData);
   };
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
+        //= user has logged in
+        console.log(authUser);
+        setUser(authUser)
+        if(authUser.displayName){
+
+        }
+      } else {
+        setUser(null);
+      }
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [user, username]);
   // useEffect -> Runs a piece of code based on a specific condition
   useEffect(() => {
     // this is where the code run
@@ -102,13 +141,56 @@ const Insta = () => {
         </div>
       </Modal>
 
+      <Modal open={openSignIn} onClose={() => setOpenSignIn(false)}>
+        <div className={classes.paper} style={modalStyle}>
+          <form className="app__singup">
+            <center>
+              <img
+                className=""
+                style={{ width: "40% !important" }}
+                src={logo}
+                alt="logo"
+              />
+            </center>
+           
+            <Input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button type="submit" onClick={singIn}>
+              SignIn
+            </Button>
+          </form>
+        </div>
+      </Modal>
+
       <Header />
-      <Button variant="contained" onClick={() => setOpen(true)}>
-        SignUp
-      </Button>
+      {user ? (
+        <Button variant="contained"  onClick={() => auth.signOut()}>
+          Logout
+        </Button>
+      ) : (
+        <div className="app__loginContainer">
+        <Button variant="contained" onClick={() => setOpenSignIn(true)}>
+          Sign In
+        </Button>
+        <Button variant="contained" onClick={() => setOpen(true)}>
+          SignUp
+        </Button>
+        </div>
+      )}
+
       {post.map((post) => (
         <Post
-          key={post.id}
+          key={post.username}
           imgUrl={post.imageUrl}
           username={post.username}
           caption={post.caption}
