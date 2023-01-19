@@ -14,6 +14,8 @@ import {
   updateProfile,
 } from "firebase/auth";
 import ImageUpload from "./posts/ImageUpload";
+import { InstagramEmbed, FacebookEmbed } from "react-social-media-embed";
+
 const getModalStyle = () => {
   const top = 50;
   const left = 50;
@@ -107,11 +109,6 @@ const Insta = () => {
 
   return (
     <div className="app">
-      {user ? (
-        <ImageUpload username={username} />
-      ) : (
-        <h3>Sorry you need to login to upload</h3>
-      )}
       <Modal open={open} onClose={() => setOpen(false)}>
         <div className={classes.paper} style={modalStyle}>
           <form className="app__singup">
@@ -179,30 +176,58 @@ const Insta = () => {
         </div>
       </Modal>
 
-      <Header />
+      <header>
+        <Header />
+        {user ? (
+          <Button variant="" onClick={() => auth.signOut()}>
+            Logout
+          </Button>
+        ) : (
+          <div className="app__loginContainer">
+            <Button variant="" onClick={() => setOpenSignIn(true)}>
+              Sign In
+            </Button>
+            <Button variant="" onClick={() => setOpen(true)}>
+              SignUp
+            </Button>
+          </div>
+        )}
+      </header>
       {user ? (
-        <Button variant="contained" onClick={() => auth.signOut()}>
-          Logout
-        </Button>
+        <ImageUpload username={username} />
       ) : (
-        <div className="app__loginContainer">
-          <Button variant="contained" onClick={() => setOpenSignIn(true)}>
-            Sign In
-          </Button>
-          <Button variant="contained" onClick={() => setOpen(true)}>
-            SignUp
-          </Button>
-        </div>
+        <h3 style={{textAlign:'center'}}>Login to upload</h3>
       )}
 
-      {post.map((post) => (
-        <Post
-          key={post.username}
-          imgUrl={post.imageUrl}
-          username={post.username}
-          caption={post.caption}
-        />
-      ))}
+      <div className="side__bar">
+        <div className="right__side__post">
+          <InstagramEmbed
+            url="https://www.instagram.com/p/CUbHfhpswxt/"
+            width={328}
+            captioned
+          />
+        </div>
+        <div className="left__side__post">
+          {post.map((post) => (
+            <Post
+              key={post.username}
+              imgUrl={post.imageUrl}
+              username={post.username}
+              caption={post.caption}
+            />
+          ))}
+        </div>
+        <div className="right__side__post">
+          <FacebookEmbed
+            url="https://www.facebook.com/TechPanaNews/photos/a.215607672656527/919354242281863/"
+            width={328}
+          />
+          <FacebookEmbed
+            url="https://www.facebook.com/TechPanaNews/photos/a.215607672656527/919354242281863/"
+            width={328}
+          />
+        </div>
+      </div>
     </div>
   );
 };
